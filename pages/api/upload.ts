@@ -1,7 +1,13 @@
+import clientPromise from "@/lib/mongodb";
 import { Storage } from "@google-cloud/storage";
 import formidable from "formidable";
 import fs from "fs";
 import { NextApiRequest, NextApiResponse, PageConfig } from "next";
+import { v4 as uuidv4 } from "uuid";
+
+type ConnectionStatus = {
+  isConnected: boolean;
+};
 
 const storage = new Storage({
   projectId: "gcp-mongo-hackathon", // Replace with your project ID
@@ -44,10 +50,16 @@ export default async function handler(
 
     const file = files.file[0];
 
-    console.log(file.originalFilename, file.filepath, "file");
+    const uniqueFilename = uuidv4();
 
     // Create a new blob in the bucket and upload the file data
-    const fileName = file.originalFilename.split(".")[0] + file.newFilename;
+    const fileName =
+      file.originalFilename.split(".")[0] +
+      "-" +
+      uniqueFilename +
+      "." +
+      file.originalFilename.split(".")[1];
+
     const blob = bucket.file(fileName);
     const blobStream = blob.createWriteStream();
 
@@ -56,9 +68,35 @@ export default async function handler(
       return res.status(500).json({ error: "Internal Server Error" });
     });
 
-    blobStream.on("finish", () => {
+    blobStream.on("finish", async () => {
       const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-      res.status(200).send({ url: publicUrl, msg: "success" });
+
+      // save to mongodb
+      try {
+        const client = await clientPromise;
+        const db = client.db("gcp-mongo-hackathon-db");
+
+        console.log("$$$$$$$$$$$$$", blob.name);
+
+        const collection = db.collection("images");
+
+        const result = await collection.insertOne({
+          name: file.originalFilename,
+          url: publicUrl,
+          createdAt: new Date(),
+        });
+
+        console.log(result, "result");
+
+        res
+          .status(200)
+          .send({ url: publicUrl, msg: "success! saved to mongodb" });
+      } catch (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .json({ error: "Internal Server Error. Could not save to MongoDB" });
+      }
     });
 
     // Create a read stream from the temporary file and pipe it to the blobStream
