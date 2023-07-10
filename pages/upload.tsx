@@ -1,4 +1,5 @@
 import { UserButton } from "@clerk/nextjs";
+import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -10,11 +11,12 @@ export default function UploadImage() {
   const [mongoId, setMongoId] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<string | null>(null);
 
-  const { getRootProps, getInputProps } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: "image/*,video/*",
     onDrop: (acceptedFiles) => {
       setSelectedImage(URL.createObjectURL(acceptedFiles[0]));
       setImageFile(acceptedFiles[0]);
+      uploadImage();
     },
   });
 
@@ -85,38 +87,83 @@ export default function UploadImage() {
         <UserButton afterSignOutUrl="/" />
       </header>
       <div className="flex flex-col justify-center border-2 border-gray-300 py-8 px-2">
-        <h1>Upload a new image, video or audio</h1>
-        <div>
-          <div {...getRootProps()}>
+        <h1 className="text-3xl font-bold">Upload Files</h1>
+        <div className="px-2">
+          <div
+            {...getRootProps()}
+            className="mt-6 mb-6 border border-neutral-200 p-16 "
+          >
             <input {...getInputProps()} />
-            <p>Drag and drop some files here, or click to select files</p>
+            {/* <p>Drag and drop some files here, or click to select files</p> */}
+            <div className="flex flex-col items-center justify-center gap-4">
+              <ArrowUpTrayIcon className="h-5 w-5 fill-current" />
+              {isDragActive ? (
+                <p>Drop the files here ...</p>
+              ) : (
+                <p>Drag & drop files here, or click to select files</p>
+              )}
+            </div>
           </div>
+
+          <h2 className="text-2xl font-bold mb-4">Preview</h2>
+
           {selectedImage && (
-            <>
-              <>
-                {imageFile && imageFile.type.startsWith("image/") ? (
+            <div className=" px-4">
+              {imageFile && imageFile.type.startsWith("image/") ? (
+                <figure className="border-2 border-red-200 mb-4 w-fit text-center">
                   <Image
                     src={selectedImage}
                     alt="Selected"
                     width={400}
                     height={300}
                   />
-                ) : (
+                  <figcaption>{imageFile.name}</figcaption>
+                </figure>
+              ) : (
+                <figure className="border-2 border-red-200 mb-4 w-fit text-center">
                   <video
                     src={selectedImage}
                     width={400}
                     height={300}
                     controls
                   />
-                )}
+                  <figcaption className="text-center text-gray-500 font-medium">
+                    {imageFile.name}
+                  </figcaption>
+                </figure>
+              )}
 
-                <button onClick={uploadImage}>Upload</button>
+              {/* {!loading && !transcription && (
+                <button
+                  onClick={uploadImage}
+                  className="bg-black  text-white py-2 px-12 rounded-md"
+                >
+                  Upload {imageFile.name}
+                </button>
+              )} */}
 
-                {loading && !mongoId && <p>Uploading</p>}
-                {mongoId && !transcription && <p>Generating Transcription</p>}
-                {transcription && <p>Transcription: {transcription}</p>}
-              </>
-            </>
+              {loading && !mongoId && (
+                <button
+                  onClick={uploadImage}
+                  className="bg-black  text-white py-2 px-12 rounded-md"
+                >
+                  Uploading...
+                </button>
+              )}
+              {mongoId && !transcription && (
+                <button
+                  onClick={uploadImage}
+                  className="bg-black  text-white py-2 px-12 rounded-md"
+                >
+                  Generating Transcription...
+                </button>
+              )}
+              {transcription && (
+                <p>
+                  <b>Transcription: </b> {transcription}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

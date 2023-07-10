@@ -29,6 +29,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@heroicons/react": "^2.0.18",
     "@types/formidable": "^3.4.0",
     "@types/uuid": "^9.0.2"
   }
