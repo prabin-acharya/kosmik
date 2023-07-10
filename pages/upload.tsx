@@ -1,3 +1,4 @@
+import { UserButton } from "@clerk/nextjs";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -80,6 +81,9 @@ export default function UploadImage() {
 
   return (
     <div>
+      <header>
+        <UserButton afterSignOutUrl="/" />
+      </header>
       <h1>Upload your image</h1>
       <div>
         <div {...getRootProps()}>
@@ -88,13 +92,6 @@ export default function UploadImage() {
         </div>
         {selectedImage && (
           <>
-            {/* <Image
-              src={selectedImage}
-              alt="Selected"
-              width={400}
-              height={300}
-            />
-            <button onClick={uploadImage}>Upload</button> */}
             <>
               {imageFile && imageFile.type.startsWith("image/") ? (
                 <Image
