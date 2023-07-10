@@ -1,10 +1,13 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 export default function UploadImage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [mongoId, setMongoId] = useState<string | null>(null);
+  const [transcription, setTranscription] = useState<string | null>(null);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: "image/*,video/*",
@@ -21,24 +24,59 @@ export default function UploadImage() {
     formData.append("file", imageFile);
     formData.append("x-file-name", imageFile.name);
 
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-      headers: {
-        "x-file-name": imageFile.name,
-      },
-    });
+    setLoading(true);
 
-    const data = await response.json();
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "x-file-name": imageFile.name,
+        },
+      });
 
-    console.log(data);
+      if (!response.ok) throw new Error("Upload failed");
 
-    if (response.ok) {
-      console.log("Image uploaded successfully");
-    } else {
-      console.log("Image upload failed");
+      const data = await response.json();
+      console.log(data);
+      setMongoId(data.uuid);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // poll for status every 10 second
+  useEffect(() => {
+    console.log("===1");
+    if (!mongoId) return;
+
+    const poll = async () => {
+      console.log("===2poll");
+      try {
+        const response = await fetch(`/api/transcription?uuid=${mongoId}`);
+
+        if (!response.ok) throw new Error("Failed to get transcription");
+
+        const data = await response.json();
+        console.log(data.result.transcription, "*****");
+
+        if (data.result.transcription) {
+          setTranscription(data.result.transcription);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    const interval = setInterval(() => {
+      poll();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [mongoId]);
 
   return (
     <div>
@@ -68,7 +106,12 @@ export default function UploadImage() {
               ) : (
                 <video src={selectedImage} width={400} height={300} controls />
               )}
+
               <button onClick={uploadImage}>Upload</button>
+
+              {loading && !mongoId && <p>Uploading</p>}
+              {mongoId && !transcription && <p>Generating Transcription</p>}
+              {transcription && <p>Transcription: {transcription}</p>}
             </>
           </>
         )}

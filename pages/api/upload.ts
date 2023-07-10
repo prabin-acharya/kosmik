@@ -76,6 +76,7 @@ export default async function handler(
         const result = await collection.insertOne({
           name: blob.name,
           originalFilename: file.originalFilename,
+          uuid: uniqueFilename,
           contenttype: blob.metadata.contentType,
           url: publicUrl,
           createdAt: new Date(),
@@ -83,9 +84,12 @@ export default async function handler(
 
         console.log(result, "result");
 
-        res
-          .status(200)
-          .send({ url: publicUrl, msg: "success! saved to mongodb" });
+        res.status(200).send({
+          url: publicUrl,
+          msg: "success! saved to mongodb",
+          result: result,
+          uuid: uniqueFilename,
+        });
       } catch (err) {
         console.error(err);
         return res
