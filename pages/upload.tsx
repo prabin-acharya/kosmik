@@ -82,7 +82,7 @@ export default function UploadImage() {
   }, [mongoId]);
 
   return (
-    <main className=" px-60">
+    <main className="px-60">
       <header className="border-2 border-green-300 flex justify-end px-16 py-2">
         <UserButton afterSignOutUrl="/" />
       </header>

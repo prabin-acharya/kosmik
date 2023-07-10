@@ -68,7 +68,10 @@ export default function Home() {
                 key={media.uuid}
                 className="border-2 border-slate-800 w-96 px-4 py-4 m-2 rounded-md"
               >
-                <p>{media.originalFilename}</p>
+                <Link href={`/file/${media.uuid}`}>
+                  {media.originalFilename}
+                </Link>
+
                 <video src={media.url} width={400} height={300} controls />
                 <p>
                   <b>Transcription: </b>
