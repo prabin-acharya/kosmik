@@ -1,13 +1,10 @@
 import clientPromise from "@/lib/mongodb";
+import { getAuth } from "@clerk/nextjs/server";
 import { Storage } from "@google-cloud/storage";
 import formidable from "formidable";
 import fs from "fs";
 import { NextApiRequest, NextApiResponse, PageConfig } from "next";
 import { v4 as uuidv4 } from "uuid";
-
-type ConnectionStatus = {
-  isConnected: boolean;
-};
 
 const storage = new Storage({
   projectId: "gcp-mongo-hackathon", // Replace with your project ID
@@ -68,10 +65,9 @@ export default async function handler(
       try {
         const client = await clientPromise;
         const db = client.db("gcp-mongo-hackathon-db");
-
-        console.log("$$$$$$$$$$$$$");
-
         const collection = db.collection("images");
+
+        const { userId } = getAuth(req);
 
         const result = await collection.insertOne({
           name: blob.name,
@@ -80,6 +76,7 @@ export default async function handler(
           contenttype: blob.metadata.contentType,
           url: publicUrl,
           createdAt: new Date(),
+          userId: userId,
         });
 
         console.log(result, "result");

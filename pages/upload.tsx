@@ -80,39 +80,46 @@ export default function UploadImage() {
   }, [mongoId]);
 
   return (
-    <div>
-      <header>
+    <main className=" px-60">
+      <header className="border-2 border-green-300 flex justify-end px-16 py-2">
         <UserButton afterSignOutUrl="/" />
       </header>
-      <h1>Upload your image</h1>
-      <div>
-        <div {...getRootProps()}>
-          <input {...getInputProps()} />
-          <p>Drag and drop some files here, or click to select files</p>
-        </div>
-        {selectedImage && (
-          <>
+      <div className="flex flex-col justify-center border-2 border-gray-300 py-8 px-2">
+        <h1>Upload a new image, video or audio</h1>
+        <div>
+          <div {...getRootProps()}>
+            <input {...getInputProps()} />
+            <p>Drag and drop some files here, or click to select files</p>
+          </div>
+          {selectedImage && (
             <>
-              {imageFile && imageFile.type.startsWith("image/") ? (
-                <Image
-                  src={selectedImage}
-                  alt="Selected"
-                  width={400}
-                  height={300}
-                />
-              ) : (
-                <video src={selectedImage} width={400} height={300} controls />
-              )}
+              <>
+                {imageFile && imageFile.type.startsWith("image/") ? (
+                  <Image
+                    src={selectedImage}
+                    alt="Selected"
+                    width={400}
+                    height={300}
+                  />
+                ) : (
+                  <video
+                    src={selectedImage}
+                    width={400}
+                    height={300}
+                    controls
+                  />
+                )}
 
-              <button onClick={uploadImage}>Upload</button>
+                <button onClick={uploadImage}>Upload</button>
 
-              {loading && !mongoId && <p>Uploading</p>}
-              {mongoId && !transcription && <p>Generating Transcription</p>}
-              {transcription && <p>Transcription: {transcription}</p>}
+                {loading && !mongoId && <p>Uploading</p>}
+                {mongoId && !transcription && <p>Generating Transcription</p>}
+                {transcription && <p>Transcription: {transcription}</p>}
+              </>
             </>
-          </>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
