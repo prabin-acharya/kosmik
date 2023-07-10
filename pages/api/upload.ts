@@ -51,14 +51,7 @@ export default async function handler(
     const file = files.file[0];
 
     const uniqueFilename = uuidv4();
-
-    // Create a new blob in the bucket and upload the file data
-    const fileName =
-      file.originalFilename.split(".")[0] +
-      "-" +
-      uniqueFilename +
-      "." +
-      file.originalFilename.split(".")[1];
+    const fileName = uniqueFilename + "." + file.originalFilename.split(".")[1];
 
     const blob = bucket.file(fileName);
     const blobStream = blob.createWriteStream();
@@ -76,12 +69,14 @@ export default async function handler(
         const client = await clientPromise;
         const db = client.db("gcp-mongo-hackathon-db");
 
-        console.log("$$$$$$$$$$$$$", blob.name);
+        console.log("$$$$$$$$$$$$$");
 
         const collection = db.collection("images");
 
         const result = await collection.insertOne({
-          name: file.originalFilename,
+          name: blob.name,
+          originalFilename: file.originalFilename,
+          contenttype: blob.metadata.contentType,
           url: publicUrl,
           createdAt: new Date(),
         });
