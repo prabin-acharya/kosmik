@@ -12,7 +12,7 @@ const bucket = storage.bucket("gcp-mongo-hackathon-docker-cloud-storage"); // Re
 
 const formidableConfig = {
   keepExtensions: true,
-  maxFileSize: 10_000_000,
+  maxFileSize: 100_000_000,
   maxFieldsSize: 10_000_000,
   maxFields: 7,
   allowEmptyFiles: false,
@@ -61,7 +61,6 @@ export default async function handler(
       res.status(200).send({ url: publicUrl, msg: "success" });
     });
 
-    // blobStream.end(file.data);
     // Create a read stream from the temporary file and pipe it to the blobStream
     fs.createReadStream(file.filepath).pipe(blobStream);
 

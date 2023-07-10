@@ -7,7 +7,7 @@ export default function UploadImage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const { getRootProps, getInputProps } = useDropzone({
-    accept: "image/*",
+    accept: "image/*,video/*",
     onDrop: (acceptedFiles) => {
       setSelectedImage(URL.createObjectURL(acceptedFiles[0]));
       setImageFile(acceptedFiles[0]);
@@ -50,13 +50,26 @@ export default function UploadImage() {
         </div>
         {selectedImage && (
           <>
-            <Image
+            {/* <Image
               src={selectedImage}
               alt="Selected"
               width={400}
               height={300}
             />
-            <button onClick={uploadImage}>Upload</button>
+            <button onClick={uploadImage}>Upload</button> */}
+            <>
+              {imageFile && imageFile.type.startsWith("image/") ? (
+                <Image
+                  src={selectedImage}
+                  alt="Selected"
+                  width={400}
+                  height={300}
+                />
+              ) : (
+                <video src={selectedImage} width={400} height={300} controls />
+              )}
+              <button onClick={uploadImage}>Upload</button>
+            </>
           </>
         )}
       </div>
