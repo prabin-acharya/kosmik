@@ -58,14 +58,14 @@ export default async function handler(
 
     blobStream.on("finish", () => {
       const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-      res.status(200).send({ url: publicUrl });
+      res.status(200).send({ url: publicUrl, msg: "success" });
     });
 
     // blobStream.end(file.data);
     // Create a read stream from the temporary file and pipe it to the blobStream
     fs.createReadStream(file.filepath).pipe(blobStream);
 
-    return res.status(200).json({ fields, files, msg: "success" });
+    // return res.status(200).json({ fields, files, msg: "success" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Internal Server Error" });
