@@ -23,7 +23,15 @@ export default function File() {
 
   return (
     <main className="px-60">
-      <header className="border-2 border-green-300 flex justify-end px-16 py-2">
+      <header className=" flex justify-between pr-16 py-2">
+        <span
+          className="text-3xl font-bold cursor-pointer bg-green-100 text-orange-500  "
+          onClick={() => {
+            window.location.href = "/";
+          }}
+        >
+          Kosmik
+        </span>
         <UserButton afterSignOutUrl="/" />
       </header>
       <div className="flex flex-col justify-center border-2 border-gray-300 py-8 px-2 pr-10">

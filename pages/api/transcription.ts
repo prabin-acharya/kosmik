@@ -10,7 +10,7 @@ export default async function handler(
   try {
     const client = await clientPromise;
     const db = client.db("gcp-mongo-hackathon-db");
-    const collection = db.collection("images");
+    const collection = db.collection("files");
 
     const result = await collection.findOne({ uuid: uuid });
 

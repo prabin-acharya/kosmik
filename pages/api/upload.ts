@@ -72,7 +72,7 @@ export default async function handler(
       try {
         const client = await clientPromise;
         const db = client.db("gcp-mongo-hackathon-db");
-        const collection = db.collection("images");
+        const collection = db.collection("files");
 
         const { userId } = getAuth(req);
 
@@ -84,7 +84,7 @@ export default async function handler(
             name: blob.name,
             originalFilename: file.originalFilename,
             uuid: uniqueFilename,
-            contenttype: blob.metadata.contentType,
+            contentType: blob.metadata.contentType,
             url: publicUrl,
             createdAt: new Date(),
             userId: userId,
@@ -118,7 +118,7 @@ export default async function handler(
             name: blob.name,
             originalFilename: file.originalFilename,
             uuid: uniqueFilename,
-            contenttype: blob.metadata.contentType,
+            contentType: blob.metadata.contentType,
             url: publicUrl,
             createdAt: new Date(),
             userId: userId,
