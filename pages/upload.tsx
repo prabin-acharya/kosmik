@@ -4,28 +4,30 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-export default function UploadImage() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+export default function UploadFile() {
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mongoId, setMongoId] = useState<string | null>(null);
+  const [fileId, setFileId] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<string | null>(null);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: "image/*,video/*",
     onDrop: (acceptedFiles) => {
-      setSelectedImage(URL.createObjectURL(acceptedFiles[0]));
-      setImageFile(acceptedFiles[0]);
-      uploadImage();
+      setSelectedFile(URL.createObjectURL(acceptedFiles[0]));
+      setFile(acceptedFiles[0]);
+      uploadFile(acceptedFiles[0]);
     },
   });
 
-  const uploadImage = async () => {
-    if (!imageFile) return;
+  const uploadFile = async (acceptedFile) => {
+    console.log("uploading");
+    if (!acceptedFile) return;
+    console.log("uploading2");
 
     const formData = new FormData();
-    formData.append("file", imageFile);
-    formData.append("x-file-name", imageFile.name);
+    formData.append("file", acceptedFile);
+    formData.append("x-file-name", acceptedFile.name);
 
     setLoading(true);
 
@@ -34,15 +36,17 @@ export default function UploadImage() {
         method: "POST",
         body: formData,
         headers: {
-          "x-file-name": imageFile.name,
+          "x-file-name": acceptedFile.name,
         },
       });
 
       if (!response.ok) throw new Error("Upload failed");
 
       const data = await response.json();
-      console.log(data);
-      setMongoId(data.uuid);
+      console.log(data, "==++");
+      setFileId(data.uuid);
+
+      data.transcription && setTranscription(data.transcription);
     } catch (error) {
       console.log(error);
     } finally {
@@ -50,20 +54,22 @@ export default function UploadImage() {
     }
   };
 
-  // poll for status every 10 second
+  // get transcription, status
   useEffect(() => {
-    console.log("===1");
-    if (!mongoId) return;
+    console.log("efffect");
+    if (!fileId) return;
+
+    if (file && file.type.startsWith("image/")) return;
+
+    console.log("polling");
 
     const poll = async () => {
-      console.log("===2poll");
       try {
-        const response = await fetch(`/api/transcription?uuid=${mongoId}`);
+        const response = await fetch(`/api/transcription?uuid=${fileId}`);
 
         if (!response.ok) throw new Error("Failed to get transcription");
 
         const data = await response.json();
-        console.log(data.result.transcription, "*****");
 
         if (data.result.transcription) {
           setTranscription(data.result.transcription);
@@ -79,7 +85,7 @@ export default function UploadImage() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [mongoId]);
+  }, [file, fileId]);
 
   return (
     <main className="px-60">
@@ -107,52 +113,47 @@ export default function UploadImage() {
 
           <h2 className="text-2xl font-bold mb-4">Preview</h2>
 
-          {selectedImage && (
+          {selectedFile && (
             <div className=" px-4">
-              {imageFile && imageFile.type.startsWith("image/") ? (
+              {file && file.type.startsWith("image/") ? (
                 <figure className="border-2 border-red-200 mb-4 w-fit text-center">
                   <Image
-                    src={selectedImage}
+                    src={selectedFile}
                     alt="Selected"
                     width={400}
                     height={300}
                   />
-                  <figcaption>{imageFile.name}</figcaption>
+                  <figcaption>{file.name}</figcaption>
                 </figure>
               ) : (
                 <figure className="border-2 border-red-200 mb-4 w-fit text-center">
-                  <video
-                    src={selectedImage}
-                    width={400}
-                    height={300}
-                    controls
-                  />
+                  <video src={selectedFile} width={400} height={300} controls />
                   <figcaption className="text-center text-gray-500 font-medium">
-                    {imageFile.name}
+                    {file.name}
                   </figcaption>
                 </figure>
               )}
 
-              {/* {!loading && !transcription && (
+              {!loading && !transcription && (
                 <button
-                  onClick={uploadImage}
+                  onClick={uploadFile}
                   className="bg-black  text-white py-2 px-12 rounded-md"
                 >
-                  Upload {imageFile.name}
+                  Upload {file.name}
                 </button>
-              )} */}
+              )}
 
-              {loading && !mongoId && (
+              {loading && !fileId && (
                 <button
-                  onClick={uploadImage}
+                  onClick={uploadFile}
                   className="bg-black  text-white py-2 px-12 rounded-md"
                 >
                   Uploading...
                 </button>
               )}
-              {mongoId && !transcription && (
+              {fileId && !transcription && (
                 <button
-                  onClick={uploadImage}
+                  onClick={uploadFile}
                   className="bg-black  text-white py-2 px-12 rounded-md"
                 >
                   Generating Transcription...

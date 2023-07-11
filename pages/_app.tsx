@@ -19,8 +19,6 @@ export default function App({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter();
   const isPublicPage = publicPages.includes(pathname);
 
-  console.log(isPublicPage, "=====");
-
   return (
     <ClerkProvider {...pageProps}>
       {isPublicPage ? (

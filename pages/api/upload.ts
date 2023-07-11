@@ -1,10 +1,13 @@
 import clientPromise from "@/lib/mongodb";
 import { getAuth } from "@clerk/nextjs/server";
 import { Storage } from "@google-cloud/storage";
+import vision from "@google-cloud/vision";
 import formidable from "formidable";
 import fs from "fs";
 import { NextApiRequest, NextApiResponse, PageConfig } from "next";
 import { v4 as uuidv4 } from "uuid";
+
+const visionClient = new vision.ImageAnnotatorClient();
 
 const storage = new Storage({
   projectId: "gcp-mongo-hackathon", // Replace with your project ID
@@ -43,6 +46,10 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
+    console.log(
+      "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    );
+
     const { fields, files } = await formidablePromise(req, formidableConfig);
 
     const file = files.file[0];
@@ -69,24 +76,63 @@ export default async function handler(
 
         const { userId } = getAuth(req);
 
-        const result = await collection.insertOne({
-          name: blob.name,
-          originalFilename: file.originalFilename,
-          uuid: uniqueFilename,
-          contenttype: blob.metadata.contentType,
-          url: publicUrl,
-          createdAt: new Date(),
-          userId: userId,
-        });
+        const fileType = blob.metadata.contentType.split("/")[0];
+        console.log(fileType, "fileType");
 
-        console.log(result, "result");
+        if (fileType === "video") {
+          const result = await collection.insertOne({
+            name: blob.name,
+            originalFilename: file.originalFilename,
+            uuid: uniqueFilename,
+            contenttype: blob.metadata.contentType,
+            url: publicUrl,
+            createdAt: new Date(),
+            userId: userId,
+          });
 
-        res.status(200).send({
-          url: publicUrl,
-          msg: "success! saved to mongodb",
-          result: result,
-          uuid: uniqueFilename,
-        });
+          console.log(result, "result");
+
+          res.status(200).send({
+            url: publicUrl,
+            msg: "success! video saved to mongodb",
+            result: result,
+            uuid: uniqueFilename,
+          });
+        }
+
+        if (fileType == "image") {
+          const [imageTranscription] = await visionClient.textDetection(
+            `https://storage.googleapis.com/gcp-mongo-hackathon-docker-cloud-storage/${uniqueFilename}.${
+              file.originalFilename.split(".")[1]
+            }`
+          );
+
+          const detections = imageTranscription.textAnnotations;
+
+          let allText = "";
+          detections?.forEach((text) => {
+            allText += text.description + " ";
+          });
+
+          const result = await collection.insertOne({
+            name: blob.name,
+            originalFilename: file.originalFilename,
+            uuid: uniqueFilename,
+            contenttype: blob.metadata.contentType,
+            url: publicUrl,
+            createdAt: new Date(),
+            userId: userId,
+            transcription: allText,
+          });
+
+          res.status(200).send({
+            url: publicUrl,
+            msg: "success! image saved to mongodb",
+            result: result,
+            uuid: uniqueFilename,
+            transcription: allText,
+          });
+        }
       } catch (err) {
         console.error(err);
         return res

@@ -1,5 +1,6 @@
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -15,7 +16,7 @@ export default function Home() {
       const res = await fetch("/api/getAllMedia");
       const data = await res.json();
       console.log(data);
-      setAllMedia(data.result);
+      data && setAllMedia(data.result);
     };
 
     fetchData();
@@ -72,10 +73,37 @@ export default function Home() {
                   {media.originalFilename}
                 </Link>
 
+                {/*  */}
+
+                {media && media.contenttype.startsWith("image/") ? (
+                  <figure className="border-2 border-red-200 mb-4 w-fit text-center">
+                    <Image
+                      src={media.url}
+                      alt="Selected"
+                      width={400}
+                      height={300}
+                    />
+                    <figcaption>{media.originalFilename}</figcaption>
+                  </figure>
+                ) : (
+                  <figure className="border-2 border-red-200 mb-4 w-fit text-center">
+                    <video src={media.url} width={400} height={300} controls />
+                    <figcaption className="text-center text-gray-500 font-medium">
+                      {media.originalFilename}
+                    </figcaption>
+                    <p>
+                      <b>Transcription: </b>
+                      {/* {media.transcription.substring(0, 100)} */}
+                    </p>
+                  </figure>
+                )}
+
+                {/*  */}
+
                 <video src={media.url} width={400} height={300} controls />
                 <p>
                   <b>Transcription: </b>
-                  {media.transcription.substring(0, 100)}
+                  {/* {media.transcription.substring(0, 100)} */}
                 </p>
               </li>
             ))}
