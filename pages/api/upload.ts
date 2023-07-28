@@ -96,7 +96,7 @@ export default async function handler(
         if (fileType === "video") {
           const result = await collection.insertOne({
             name: blob.name,
-            originalFilename: file.originalFilename,
+            originalFilename: file?.originalFilename,
             uuid: uniqueFilename,
             contentType: blob.metadata.contentType,
             tags: ["video"],
@@ -129,7 +129,7 @@ export default async function handler(
 
           const result = await collection.insertOne({
             name: blob.name,
-            originalFilename: file.originalFilename,
+            originalFilename: file?.originalFilename,
             uuid: uniqueFilename,
             contentType: blob.metadata.contentType,
             url: publicUrl,
@@ -169,7 +169,7 @@ export default async function handler(
 
           const result = await collection.insertOne({
             name: blob.name,
-            originalFilename: file.originalFilename,
+            originalFilename: file?.originalFilename,
             uuid: uniqueFilename,
             contentType: blob.metadata.contentType,
             url: publicUrl,
