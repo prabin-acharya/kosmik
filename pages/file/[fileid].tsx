@@ -22,10 +22,10 @@ export default function File() {
   }, [fileid]);
 
   return (
-    <main className="px-60">
-      <header className=" flex justify-between pr-16 py-2">
+    <main className="">
+      <header className=" flex justify-between  py-2 bg-fly px-60 pr-76 sticky top-0 z-50 shadow-md">
         <span
-          className="text-3xl font-bold cursor-pointer bg-green-100 text-orange-500  "
+          className="text-3xl font-bold cursor-pointer  "
           onClick={() => {
             window.location.href = "/";
           }}
@@ -34,16 +34,25 @@ export default function File() {
         </span>
         <UserButton afterSignOutUrl="/" />
       </header>
-      <div className="flex flex-col justify-center border-2 border-gray-300 py-8 px-2 pr-10">
+      <div className="flex flex-col justify-center py-8 px-60 ">
         {file && (
           <>
-            <h1 className="text-3xl font-bold mb-4">{file.originalFilename}</h1>
-            <figure className="border-2 border-red-200 mb-4 w-fit text-center">
+            <h1 className="text-3xl font-bold mb-4">{file.generatedTitle}</h1>
+            <figure className=" mb-4 w-fit text-center">
               <video src={file?.url} width={400} height={300} controls />
               <figcaption className="text-center text-gray-500 font-medium">
-                {file.filename}
+                {file.generatedTitle}
               </figcaption>
             </figure>
+
+            {file.tags?.map((tag) => (
+              <span
+                key={tag}
+                className="bg-gray-200 w-fit text-gray-500 text-xs rounded-md px-2 py-1 mr-1"
+              >
+                {tag}
+              </span>
+            ))}
 
             <p>
               <b>Transcription: </b> {file.transcription}

@@ -10,6 +10,9 @@ export default function UploadFile() {
   const [loading, setLoading] = useState(false);
   const [fileId, setFileId] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<string | null>(null);
+  const [title, setTitle] = useState<string>("");
+  const [tags, setTags] = useState<string>("");
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(true);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: "image/*,video/*",
@@ -43,15 +46,45 @@ export default function UploadFile() {
       if (!response.ok) throw new Error("Upload failed");
 
       const data = await response.json();
-      console.log(data, "==++");
       setFileId(data.uuid);
 
-      data.transcription && setTranscription(data.transcription);
+      if (data.transcription && !title) {
+        setTranscription(data.transcription);
+        generateTitle(data.transcription, data.uuid);
+      }
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateTitle = async (tcps, fileId) => {
+    console.log("generating title", transcription);
+
+    if (title) return;
+
+    const response = await fetch("/api/ai/title", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userInput: tcps,
+        context: "image/screenshot",
+        uuid: fileId,
+      }),
+    });
+
+    const data = await response.json();
+
+    const { output } = data;
+
+    const generatedTitle = output.text;
+
+    setTitle(generatedTitle);
+
+    console.log(generatedTitle);
   };
 
   // get transcription, status
@@ -74,10 +107,39 @@ export default function UploadFile() {
         if (data.result.transcription) {
           setTranscription(data.result.transcription);
           clearInterval(interval);
+          if (!title) {
+            console.log("lllllllllLLLL");
+            generateTitle(data.result.transcription, fileId);
+          }
         }
       } catch (error) {
         console.log(error);
       }
+    };
+
+    const generateTitle = async (tcps, fileId) => {
+      console.log("~~~~~~~~");
+      const response = await fetch("/api/ai/title", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userInput: tcps,
+          context: "image/screenshot",
+          uuid: fileId,
+        }),
+      });
+
+      const data = await response.json();
+
+      const { output } = data;
+
+      const generatedTitle = output.text;
+
+      setTitle(generatedTitle);
+
+      console.log(generatedTitle);
     };
 
     const interval = setInterval(() => {
@@ -85,13 +147,45 @@ export default function UploadFile() {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [file, fileId]);
+  }, [file, fileId, title, transcription]);
+
+  // component unmount
+  useEffect(() => {
+    return () => {
+      setSelectedFile(null);
+      setFile(null);
+      setLoading(false);
+      setFileId(null);
+      setTranscription(null);
+      setTitle("");
+      setTags("");
+      setButtonDisabled(true);
+    };
+  }, []);
+
+  const updateDetails = async () => {
+    const response = await fetch("/api/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uuid: fileId,
+        title,
+        tags,
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log(data);
+  };
 
   return (
-    <main className="px-60">
-      <header className=" flex justify-between pr-16 py-2">
+    <main className="">
+      <header className=" flex justify-between  py-2 bg-fly px-60 pr-76 sticky top-0 z-50 shadow-md">
         <span
-          className="text-3xl font-bold cursor-pointer bg-green-100 text-orange-500  "
+          className="text-3xl font-bold cursor-pointer  "
           onClick={() => {
             window.location.href = "/";
           }}
@@ -100,12 +194,12 @@ export default function UploadFile() {
         </span>
         <UserButton afterSignOutUrl="/" />
       </header>
-      <div className="flex flex-col justify-center border-2 border-gray-300 py-8 px-2">
-        <h1 className="text-3xl font-bold">Upload Files</h1>
+      <div className="flex flex-col justify-center  pt-4 px-60">
+        <h1 className="text-2xl font-bold">Upload Files</h1>
         <div className="px-2">
           <div
             {...getRootProps()}
-            className="mt-6 mb-6 border border-neutral-200 p-16 "
+            className="mt-2 mb-4 border border-neutral-200 p-12 "
           >
             <input {...getInputProps()} />
             {/* <p>Drag and drop some files here, or click to select files</p> */}
@@ -119,59 +213,140 @@ export default function UploadFile() {
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold mb-4">Preview</h2>
+          {selectedFile && <h2 className="text-2xl font-bold mb-4">Preview</h2>}
 
           {selectedFile && (
-            <div className=" px-4">
-              {file && file.type.startsWith("image/") ? (
-                <figure className="border-2 border-red-200 mb-4 w-fit text-center">
-                  <Image
-                    src={selectedFile}
-                    alt="Selected"
-                    width={400}
-                    height={300}
-                  />
-                  <figcaption>{file.name}</figcaption>
-                </figure>
-              ) : (
-                <figure className="border-2 border-red-200 mb-4 w-fit text-center">
-                  <video src={selectedFile} width={400} height={300} controls />
-                  <figcaption className="text-center text-gray-500 font-medium">
-                    {file.name}
-                  </figcaption>
-                </figure>
-              )}
+            <div className="">
+              <div className="flex justify-between">
+                <div className="p-4">
+                  {file && file.type.startsWith("image/") && (
+                    <figure className=" mb-4 w-fit text-center">
+                      <Image
+                        src={selectedFile}
+                        alt="Selected"
+                        width={400}
+                        height={300}
+                      />
+                      <figcaption>{file.name}</figcaption>
+                    </figure>
+                  )}
 
-              {!loading && !transcription && (
-                <button
-                  onClick={uploadFile}
-                  className="bg-black  text-white py-2 px-12 rounded-md"
-                >
-                  Upload {file.name}
-                </button>
-              )}
+                  {file && file.type.startsWith("video/") && (
+                    <figure className=" mb-4 w-fit text-center">
+                      <video
+                        src={selectedFile}
+                        width={400}
+                        height={300}
+                        controls
+                      />
+                      <figcaption className="text-center text-gray-500 font-medium">
+                        {file.name}
+                      </figcaption>
+                    </figure>
+                  )}
 
-              {loading && !fileId && (
-                <button
-                  onClick={uploadFile}
-                  className="bg-black  text-white py-2 px-12 rounded-md"
-                >
-                  Uploading...
-                </button>
-              )}
-              {fileId && !transcription && (
-                <button
-                  onClick={uploadFile}
-                  className="bg-black  text-white py-2 px-12 rounded-md"
-                >
-                  Generating Transcription...
-                </button>
-              )}
-              {transcription && (
-                <p>
-                  <b>Transcription: </b> {transcription}
-                </p>
-              )}
+                  {file && file.type.startsWith("application/") && (
+                    <figure className="border-2 border-red-200 mb-4 w-fit text-center">
+                      {/* <video
+                        src={selectedFile}
+                        width={400}
+                        height={300}
+                        controls
+                      /> */}
+                      <p>pdf</p>
+                      <figcaption className="text-center text-gray-500 font-medium">
+                        {file.name}
+                      </figcaption>
+                    </figure>
+                  )}
+                </div>
+
+                <div className=" p-4 pl-8 w-full">
+                  {/* this div is file status, name, title, size, length */}
+                  <div className="mb-4">
+                    {/* this is just top status */}
+                    {/* {!loading && !transcription && (
+                      <button
+                        onClick={uploadFile}
+                        className=" rounded-md bg-gray-300 p-1 px-2 text-xs hover:cursor-pointer"
+                      >
+                        Upload {file.name}
+                      </button>
+                    )} */}
+
+                    {loading && !fileId && (
+                      <button className=" rounded-md bg-gray-300 p-1 px-2 text-xs hover:cursor-pointer">
+                        Uploading...
+                      </button>
+                    )}
+
+                    {fileId && (
+                      <button className=" rounded-md bg-gray-300 p-1 px-2 text-xs hover:cursor-pointer">
+                        Saved
+                      </button>
+                    )}
+
+                    {fileId && !transcription && (
+                      <button className=" rounded-md bg-gray-300 p-1 px-2 text-xs hover:cursor-pointer">
+                        Generating Transcription...
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    {/* generated title, allow edit, add tags */}
+                    <input
+                      type="text"
+                      placeholder="Title"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                        setButtonDisabled(false);
+                      }}
+                      className="text-2xl font-semibold border-none outline-none mb-4"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="tags: ai, cold-email,..."
+                      value={tags}
+                      onChange={(e) => {
+                        setTags(e.target.value);
+                        setButtonDisabled(false);
+                      }}
+                      className="border-none outline-none"
+                    />
+
+                    {!buttonDisabled && (
+                      <button
+                        onClick={() => {
+                          updateDetails();
+                          setButtonDisabled(true);
+                        }}
+                        className={` w-fit px-4 py-1 bg-fly rounded-md border mt-4 ${
+                          buttonDisabled
+                            ? "cursor-not-allowed "
+                            : "hover:border hover:border-fuchsia-600"
+                        }`}
+                      >
+                        Update
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                {/* below this transcription related */}
+                {transcription && (
+                  <>
+                    <p>
+                      <b>Transcription: </b> {transcription}
+                    </p>
+
+                    <span className="">*magic* Summarize this</span>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>

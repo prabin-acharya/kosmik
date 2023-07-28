@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@clerk/nextjs': ^4.21.14
+  '@google-cloud/documentai': ^7.4.0
   '@google-cloud/storage': ^6.11.0
   '@google-cloud/vision': ^3.1.4
   '@heroicons/react': ^2.0.18
@@ -16,6 +17,7 @@ specifiers:
   formidable: ^3.5.0
   mongodb: ^5.7.0
   next: 13.4.9
+  openai: ^3.3.0
   postcss: 8.4.25
   react: 18.2.0
   react-dom: 18.2.0
@@ -26,6 +28,7 @@ specifiers:
 
 dependencies:
   '@clerk/nextjs': 4.21.14_hyjx7svporfhadhuakm5xolhha
+  '@google-cloud/documentai': 7.4.0
   '@google-cloud/storage': 6.11.0
   '@google-cloud/vision': 3.1.4
   '@types/node': 20.4.1
@@ -37,6 +40,7 @@ dependencies:
   formidable: 3.5.0
   mongodb: 5.7.0
   next: 13.4.9_biqbaboplfbrettd7655fr4n2y
+  openai: 3.3.0
   postcss: 8.4.25
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
@@ -209,6 +213,16 @@ packages:
   /@eslint/js/8.44.0:
     resolution: {integrity: sha512-Ag+9YM4ocKQx9AarydN0KY2j0ErMHNIocPDrVo8zAE44xLTjEtz81OdR68/cydGtk6m6jDb5Za3r2useMzYmSw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dev: false
+
+  /@google-cloud/documentai/7.4.0:
+    resolution: {integrity: sha512-slfcj9mlz/CkOuRvFIzuwS0t0C2J2K+OfVxz5X7ZZNpOZQuTZEb6ES5EKp4Pz38ik5JSxM6KR/ugFK4FyHxmkg==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      google-gax: 3.6.1
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
     dev: false
 
   /@google-cloud/paginator/3.0.7:
@@ -994,6 +1008,14 @@ packages:
   /axe-core/4.7.2:
     resolution: {integrity: sha512-zIURGIS1E1Q4pcrMjp+nnEh+16G56eG/MUllJH8yEvw7asDo7Ac9uhC9KIH5jzpITueEZolfYglnCGIuSBz39g==}
     engines: {node: '>=4'}
+    dev: false
+
+  /axios/0.26.1:
+    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
+    dependencies:
+      follow-redirects: 1.15.2
+    transitivePeerDependencies:
+      - debug
     dev: false
 
   /axobject-query/3.2.1:
@@ -1888,6 +1910,16 @@ packages:
     resolution: {integrity: sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==}
     dev: false
 
+  /follow-redirects/1.15.2:
+    resolution: {integrity: sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /for-each/0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
     dependencies:
@@ -1896,6 +1928,15 @@ packages:
 
   /form-data/3.0.1:
     resolution: {integrity: sha512-RHkBKtLWUVwd7SqRIvCZMEvAMoGUp0XU+seQiZejj0COz3RI3hWP4sCv3gZWWLjJTd7rGwcsF5eKZGii0r/hbg==}
+    engines: {node: '>= 6'}
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.35
+    dev: false
+
+  /form-data/4.0.0:
+    resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
     engines: {node: '>= 6'}
     dependencies:
       asynckit: 0.4.0
@@ -3022,6 +3063,15 @@ packages:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       is-wsl: 2.2.0
+    dev: false
+
+  /openai/3.3.0:
+    resolution: {integrity: sha512-uqxI/Au+aPRnsaQRe8CojU0eCR7I0mBiKjD3sNMzY6DaC1ZVrc85u98mtJW6voDug8fgGN+DIZmTDxTthxb7dQ==}
+    dependencies:
+      axios: 0.26.1
+      form-data: 4.0.0
+    transitivePeerDependencies:
+      - debug
     dev: false
 
   /optionator/0.8.3:

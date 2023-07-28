@@ -1,5 +1,16 @@
 import clientPromise from "@/lib/mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
+const { DiscussServiceClient } = require("@google-ai/generativelanguage");
+
+// const { EndpointServiceClient } = require("@google-cloud/aiplatform");
+
+// const clientOptions = {
+//   apiEndpoint: "us-central1-aiplatform.googleapis.com",
+// };
+
+// const client = new EndpointServiceClient(clientOptions);
+
+const MODEL_NAME = "models/chat-bison-001";
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,6 +28,7 @@ export default async function handler(
     console.log(result, "result");
 
     res.status(200).send({
+      msg: "success! generated transcription",
       result: result,
     });
   } catch (err) {
@@ -28,5 +40,5 @@ export default async function handler(
     });
   }
 
-  // return res.status(500).json({ error: "Internal Server Error pap ppap papp" });
+  return res.status(500).json({ error: "Internal Server Error pap ppap papp" });
 }

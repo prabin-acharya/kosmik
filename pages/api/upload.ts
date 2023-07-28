@@ -6,6 +6,10 @@ import formidable from "formidable";
 import fs from "fs";
 import { NextApiRequest, NextApiResponse, PageConfig } from "next";
 import { v4 as uuidv4 } from "uuid";
+const { DocumentProcessorServiceClient } =
+  require("@google-cloud/documentai").v1;
+
+const documentAiClient = new DocumentProcessorServiceClient();
 
 const visionClient = new vision.ImageAnnotatorClient();
 
@@ -52,10 +56,21 @@ export default async function handler(
 
     const { fields, files } = await formidablePromise(req, formidableConfig);
 
-    const file = files.file[0];
+    // const file = files.file[0];
+
+    let file: formidable.File | undefined;
+
+    if (Array.isArray(files.file)) {
+      // If files.file is an array, get the first element
+      file = files.file[0];
+    } else {
+      // If files.file is a single File object, just use it directly
+      file = files.file;
+    }
 
     const uniqueFilename = uuidv4();
-    const fileName = uniqueFilename + "." + file.originalFilename.split(".")[1];
+    const fileName =
+      uniqueFilename + "." + file?.originalFilename?.split(".")[1];
 
     const blob = bucket.file(fileName);
     const blobStream = blob.createWriteStream();
@@ -68,7 +83,6 @@ export default async function handler(
     blobStream.on("finish", async () => {
       const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
 
-      // save to mongodb
       try {
         const client = await clientPromise;
         const db = client.db("gcp-mongo-hackathon-db");
@@ -85,6 +99,7 @@ export default async function handler(
             originalFilename: file.originalFilename,
             uuid: uniqueFilename,
             contentType: blob.metadata.contentType,
+            tags: ["video"],
             url: publicUrl,
             createdAt: new Date(),
             userId: userId,
@@ -102,9 +117,7 @@ export default async function handler(
 
         if (fileType == "image") {
           const [imageTranscription] = await visionClient.textDetection(
-            `https://storage.googleapis.com/gcp-mongo-hackathon-docker-cloud-storage/${uniqueFilename}.${
-              file.originalFilename.split(".")[1]
-            }`
+            `https://storage.googleapis.com/gcp-mongo-hackathon-docker-cloud-storage/${fileName}`
           );
 
           const detections = imageTranscription.textAnnotations;
@@ -120,6 +133,7 @@ export default async function handler(
             uuid: uniqueFilename,
             contentType: blob.metadata.contentType,
             url: publicUrl,
+            tags: ["image"],
             createdAt: new Date(),
             userId: userId,
             transcription: allText,
@@ -133,8 +147,48 @@ export default async function handler(
             transcription: allText,
           });
         }
+
+        if (fileType === "application") {
+          const name = `projects/gcp-mongo-hackathon/locations/us/processors/d1f0b009dd94aa77`;
+          const [operation] = await documentAiClient.processDocument({
+            name,
+            document: {
+              content: `https://storage.googleapis.com/gcp-mongo-hackathon-docker-cloud-storage/${fileName}`,
+              mimeType: blob.metadata.contentType,
+            },
+          });
+
+          const [response] = await operation.promise();
+
+          const [document] = response?.document?.text?.split(" ");
+
+          console.log(
+            "+++++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+          );
+          console.log(document);
+
+          const result = await collection.insertOne({
+            name: blob.name,
+            originalFilename: file.originalFilename,
+            uuid: uniqueFilename,
+            contentType: blob.metadata.contentType,
+            url: publicUrl,
+            tags: ["document"],
+            createdAt: new Date(),
+            userId: userId,
+            transcription: document,
+          });
+
+          res.status(200).send({
+            url: publicUrl,
+            msg: "success! document saved to mongodb",
+            result: result,
+            uuid: uniqueFilename,
+            transcription: document,
+          });
+        }
       } catch (err) {
-        console.error(err);
+        console.error(err, "---------------------------------------1");
         return res
           .status(500)
           .json({ error: "Internal Server Error. Could not save to MongoDB" });
@@ -146,7 +200,7 @@ export default async function handler(
 
     // return res.status(200).json({ fields, files, msg: "success" });
   } catch (err) {
-    console.error(err);
+    console.error(err, "---------------------------------------2");
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }

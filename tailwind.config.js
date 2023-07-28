@@ -13,10 +13,16 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       width: {
-        homeImages: "18rem", // Add your custom width
+        homeImages: "19.75rem", // Add your custom width
       },
       height: {
         homeImages: "15rem", // Add your custom height
+      },
+      backgroundColor: {
+        fly: "#EACBF4",
+      },
+      borderColor: {
+        fly: "#EACBF4",
       },
     },
   },
