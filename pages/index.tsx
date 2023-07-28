@@ -168,8 +168,9 @@ export default function Home() {
               <p className="text-2xl font-bold text-gray-500">No files found</p>
               <br />
               <p>
-                Hey, looks like you are new here. Click on "+ Add New" button
-                above to start saving files.
+                {
+                  'Hey, looks like you are new here. Click on "+ Add New" button above to start saving files.'
+                }
               </p>
             </div>
           )}
