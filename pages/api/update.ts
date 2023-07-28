@@ -4,7 +4,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 const updateDetails = async (req: NextApiRequest, res: NextApiResponse) => {
   const uuid = req.body.uuid;
   const title = req.body.title;
-  const tags = req.body.tags;
+  const tags: string = req.body.tags;
   const tagsArray = tags.split(",").map((tag) => tag.trim());
 
   try {
